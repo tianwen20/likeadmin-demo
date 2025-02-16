@@ -1,0 +1,30 @@
+include:
+  - path: ./docker-compose-base.yml
+    env_file: ./.env
+
+services:
+  work:
+    depends_on:
+      mysql:
+        condition: service_healthy
+    image: work/work-platform
+    container_name: work-platform
+    ports:
+      - ${ADMIN_SVR_HTTP_PORT}:8000
+      - ${FRONT_SVR_HTTP_PORT}:8002
+      - 9180:80
+      - 9143:443
+    volumes:
+      - ../server:/workspace/server
+      - ./www:/workspace/www
+      - ./logs:/workspace/logs
+      - ./nginx/work.conf:/etc/nginx/conf.d/work.conf
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/mime.types:/etc/nginx/mime.types
+    environment:
+      - TZ=${TIMEZONE}
+      - HF_ENDPOINT=https://hf-mirror.com
+    networks:
+      - work
+    restart: always
